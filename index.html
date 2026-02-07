@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Paket Nusantara Sehat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 10px;
+            padding-bottom: 120px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #005BAC, #0078C8);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .col-product { width: 33.33%; }
+        .col-qty { width: 33.33%; }
+        .col-price { width: 33.33%; }
+
+        th {
+            background-color: #4a6491;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            vertical-align: middle;
+        }
+
+        th.col-product, th.col-qty, th.col-price {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eaeaea;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        td:nth-child(2) {
+            text-align: center;
+        }
+
+        td > div {
+            max-width: 100%;
+        }
+
+        /* ===== VISUAL BARIS AGAR JELAS UNTUK SCREENSHOT ===== */
+        /* garis utama antar baris */
+        tbody tr {
+            border-bottom: 2px solid #cfd8e3; /* lebih gelap */
+        }
+        
+        /* garis sekunder tipis (double line effect) */
+        tbody tr:not(:last-child)::after {
+            content: "";
+            display: block;
+            height: 6px;
+            background: #f5f7fa;
+        }
+        
+        /* zebra lebih kontras */
+        tbody tr:nth-child(even) {
+            background-color: #f1f5fb;
+        }
+        
+        /* produk yang dipilih makin jelas */
+        .purchased-product {
+            background-color: #e8f2ff !important;
+            box-shadow: inset 4px 0 0 #0078C8;
+        }
+        
+        /* bonus row tetap beda tapi lembut */
+        .bonus-product-row {
+            background-color: #f7faf7 !important;
+        }
+
+        tr:hover {
+            background-color: #f0f4ff;
+        }
+
+        .product-header {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow: hidden;
+        }
+
+        .sku {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+            line-height: 1.4;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            margin-top: 3px;
+        }
+
+        .bcm { background-color: #3498db; }
+        .bpm { background-color: #9b59b6; }
+        .neb { background-color: #2ecc71; }
+        .eft { background-color: #e67e22; }
+        .tens { background-color: #e74c3c; }
+        .nocat { background-color: #95a5a6; }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .qty-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background-color: #4a6491;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .qty-btn:hover:not(:disabled) {
+            background-color: #3a5381;
+            transform: scale(1.05);
+        }
+
+        .qty-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .qty-input {
+            width: 50px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #f9f9f9;
+            transition: all 0.2s;
+        }
+
+        .qty-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .qty-input:disabled {
+            background-color: #f0f0f0;
+            color: #888;
+        }
+
+        .qty-input-zero {
+            background-color: #f5f5f5;
+            color: #999;
+        }
+
+        /* Kontrol visibilitas bonus */
+        .bonus-hidden {
+            display: none !important;
+        }
+
+        .bonus-visible {
+            display: block;
+            animation: fadeIn 0.2s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bonus-controls {
+            margin-top: 8px;
+            background: linear-gradient(135deg, #f0f9ff, #e6f7ff);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #3498db;
+        }
+
+        .bonus-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .bonus-buttons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .bonus-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .bonus-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #219653, #27ae60);
+            transform: scale(1.05);
+        }
+
+        .bonus-btn:disabled {
+            background: linear-gradient(135deg, #cccccc, #dddddd);
+            cursor: not-allowed;
+        }
+
+        .floating-summary {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            border-top: 1px solid #e0e0e0;
+            z-index: 100;
+        }
+
+        .summary-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .summary-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #4a6491;
+        }
+
+        /* Warna floating summary */
+        .summary-green {
+            border-left-color: #27ae60 !important;
+            background: linear-gradient(135deg, #f0f9f0, #e6f7e6);
+        }
+        
+        .summary-total-price {
+            border-left-color: #bdc3c7 !important;
+            background: #ffffff;
+        }
+        
+        .summary-final-price {
+            border-left-color: #0078C8 !important;
+            background: linear-gradient(135deg, #eef6ff, #e3f0ff);
+        }
+        
+        .summary-red {
+            border-left-color: #e74c3c !important;
+            background: linear-gradient(135deg, #fff0f0, #ffe6e6);
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .bonus-info-panel {
+            background: linear-gradient(135deg, #e8f5e9, #f0f9f0);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .bonus-info-panel h3 {
+            color: #219653;
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bonus-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .bonus-threshold {
+            background-color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .bonus-threshold div {
+            margin-bottom: 4px;
+        }
+
+        .threshold-value {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .bonus-product {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .price-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow: hidden;
+        }
+
+        .price-value {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .discount-info {
+            font-size: 12px;
+            color: #e74c3c;
+            font-weight: 600;
+            background-color: #ffebee;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .final-price-value {
+            font-weight: 700;
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .max-notification {
+            font-size: 11px;
+            color: #3498db;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+        
+        .remain-zero {
+            color: #b5b5b5;
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .bonus-icon {
+            color: #27ae60;
+        }
+
+        /* ===== MOBILE DENSITY ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+                padding-bottom: 100px;
+            }
+            
+            .floating-summary {
+                padding: 8px 8px 6px;
+                max-height: 18vh;
+                overflow: hidden;
+            }
+            
+            /* Perubahan grid untuk mobile: 2x2 */
+            .summary-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            
+            .summary-item {
+                padding: 6px;
+                border-left-width: 3px;
+            }
+            
+            .summary-label {
+                font-size: 9px;
+                margin-bottom: 2px;
+            }
+            
+            .summary-value {
+                font-size: 13px;
+                font-weight: 700;
+            }
+            
+            table {
+                min-width: 0;
+            }
+            
+            td, th {
+                padding: 5px 4px;
+                font-size: 11px;
+            }
+            
+            .product-name {
+                font-size: 13px;
+                line-height: 1.2;
+            }
+            
+            .sku {
+                font-size: 10px;
+            }
+            
+            .category-badge {
+                font-size: 9px;
+                padding: 2px 6px;
+            }
+            
+            .qty-controls {
+                gap: 4px;
+            }
+            
+            .qty-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 11px;
+            }
+            
+            .qty-input {
+                width: 36px;
+                font-size: 11px;
+                padding: 4px;
+            }
+            
+            .bonus-controls {
+                padding: 5px;
+                margin-top: 6px;
+            }
+            
+            .bonus-header {
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+            
+            .bonus-btn {
+                width: 22px;
+                height: 22px;
+                font-size: 10px;
+            }
+            
+            .price-info {
+                gap: 3px;
+            }
+            
+            .price-value {
+                font-size: 11px;
+            }
+            
+            .discount-info {
+                font-size: 9px;
+                padding: 2px 6px;
+            }
+            
+            .final-price-value {
+                font-size: 11px;
+            }
+            
+            h1 {
+                font-size: 18px;
+            }
+            
+            .bonus-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .bonus-info-panel {
+                font-size: 12px;
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .table-container {
+                border-radius: 6px;
+            }
+        }
+
+        .step-indicator {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+        
+        .bonus-value-info {
+            font-size: 10px;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+        
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #e74c3c;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .reset-btn:hover {
+            background: #c0392b;
+            transform: scale(1.02);
+        }
+        
+        .reset-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .reset-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .package-status {
+            font-size: 10px;
+            display: block;
+            margin-top: 2px;
+        }
+        
+        .summary-green .package-status {
+            color: #27ae60;
+        }
+        
+        .summary-red .package-status {
+            color: #e74c3c;
+        }
+        
+        .bonus-input-zero {
+            background-color: #f5f5f5;
+            color: #999;
+        }
+        
+        /* ===== SCREENSHOT/PRINT MODE ===== */
+        @media print {
+            .floating-summary {
+                position: relative;
+                box-shadow: none;
+                border-top: 2px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> Kalkulator Paket Nusantara Sehat</h1>
+            <p class="subtitle">Hitung harga, diskon, dan bonus dengan mudah</p>
+        </header>
+
+        <!-- Tombol Reset (kondisional) -->
+        <div id="resetWrapper" style="display:none; margin-bottom:10px;">
+            <button onclick="resetAll()" class="reset-btn">
+                Reset Semua
+            </button>
+        </div>
+
+        <!-- Bonus Info Panel (selalu tampil) -->
+        <div class="bonus-info-panel" id="bonus-info">
+            <h3>
+                <i class="fas fa-gift"></i> Belanja 2 Kategori Produk (Berlaku Kelipatan)
+            </h3>
+            <div class="bonus-list">
+                <div class="bonus-threshold">
+                    <div><strong>Value Threshold</strong>: Rp 850.000</div>
+                    <div><strong>Bonus</strong>: Adaptor / MC-246</div>
+                    <div><strong>Qty Bonus</strong>: 1 / 2</div>
+                </div>
+                <div class="bonus-threshold">
+                    <div><strong>Value Threshold</strong>: Rp 2.550.000</div>
+                    <div><strong>Bonus</strong>: HEM 7120</div>
+                    <div><strong>Qty Bonus</strong>: 1</div>
+                </div>
+                <div class="bonus-threshold">
+                    <div><strong>Value Threshold</strong>: Rp 3.400.000</div>
+                    <div><strong>Bonus</strong>: Nebu C801</div>
+                    <div><strong>Qty Bonus</strong>: 1</div>
+                </div>
+                <div class="bonus-threshold">
+                    <div><strong>Value Threshold</strong>: Rp 4.250.000</div>
+                    <div><strong>Bonus</strong>: HEM 7156T</div>
+                    <div><strong>Qty Bonus</strong>: 1</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th class="col-product">Product</th>
+                        <th class="col-qty">Qty</th>
+                        <th class="col-price">Price</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="floating-summary">
+        <div class="summary-content">
+            <div class="summary-item summary-green" id="packageIndicator">
+                <div class="summary-label">
+                    Total Package
+                    <span id="packageStatus" class="package-status">❌ 2 Kategori & ≥ 850rb</span>
+                </div>
+                <div class="summary-value" id="totalPackage">0</div>
+            </div>
+            <div class="summary-item summary-total-price">
+                <div class="summary-label">Total Price</div>
+                <div class="summary-value" id="totalPrice">Rp 0</div>
+            </div>
+            <div class="summary-item summary-final-price">
+                <div class="summary-label">Total Final Price <span style="font-size:10px; opacity:0.7;">(termasuk PPN 11%)</span></div>
+                <div class="summary-value" id="totalFinalPrice">Rp 0</div>
+            </div>
+            <div class="summary-item summary-red">
+                <div class="summary-label">Bonus Balance</div>
+                <div class="summary-value" id="bonusBalance">Rp 0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================
+        // MASTER DATA PRODUK
+        // =====================
+        const products = [
+            { category: "BCM", sku: "8504", product: "HN-289-EBK", price: 227739, discount: 6.25 },
+            { category: "BCM", sku: "8091", product: "HBF-214-AP", price: 626316, discount: 16.67 },
+            { category: "BCM", sku: "6830", product: "HBF-375-AP", price: 1641320, discount: 11.00 },
+            { category: "BPM", sku: "8085", product: "HEM-7120-AP", price: 408000, discount: 20.00 },
+            { category: "BPM", sku: "E658", product: "HEM-7142T2-AP2", price: 412000, discount: 20.00 },
+            { category: "BPM", sku: "E250", product: "HEM-7156-AP", price: 577280, discount: 8.00 },
+            { category: "BPM", sku: "D526", product: "HEM-7156T-AP", price: 619500, discount: 8.00 },
+            { category: "BPM", sku: "E670", product: "HEM-7157-AP3[JPN750]", price: 702512, discount: 10.00 },
+            { category: "BPM", sku: "D239", product: "HEM-7156T-AAP", price: 783000, discount: 8.00 },
+            { category: "BPM", sku: "F140", product: "HEM-7383T1-AP", price: 1230000, discount: 6.25 },
+            { category: "BPM", sku: "E457", product: "HEM-7530T-AP3", price: 2492440, discount: 11.00 },
+            { category: "NEB", sku: "B292", product: "NE-C101-AP", price: 429250, discount: 10.00 },
+            { category: "NEB", sku: "7727", product: "NE-C801S-AP", price: 468500, discount: 11.00 },
+            { category: "NEB", sku: "D252", product: "NE-C28-C1", price: 619500, discount: 12.50 },
+            { category: "EFT", sku: "E245", product: "MC-246-AP4", price: 56880, discount: 5.80 },
+            { category: "EFT", sku: "E297", product: "MC-341-AP4", price: 59940, discount: 9.00 },
+            { category: "EFT", sku: "E089", product: "MC-343F-AP4", price: 78220, discount: 4.70 },
+            { category: "EFT", sku: "F139", product: "MC-F300-AP", price: 452000, discount: 9.00 },
+            { category: "EFT", sku: "8375", product: "MC-523-AP", price: 452153, discount: 7.00 },
+            { category: "TENS", sku: "B735", product: "HV-F013-AP4", price: 445493, discount: 14.00 },
+            { category: "No Category", sku: "6865", product: "ADAPTOR (BPM)", price: 0, discount: 0 }
+        ];
+
+        // =====================
+        // STATE
+        // =====================
+        const cart = {}, bonusQty = {}, productData = {};
+        
+        // Inisialisasi state
+        products.forEach(p => {
+            cart[p.sku] = 0;
+            bonusQty[p.sku] = 0;
+            productData[p.sku] = p;
+        });
+
+        // =====================
+        // HELPER FUNCTIONS
+        // =====================
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Hitung total harga sebelum diskon
+        function calculateTotalPrice() {
+            return products.reduce((total, p) => total + (cart[p.sku] * p.price), 0);
+        }
+
+        // Cek kondisi bonus (2 kategori dan total >= 850.000)
+        function canUseBonus() {
+            const categories = new Set();
+            products.forEach(p => {
+                if (cart[p.sku] > 0 && p.category !== 'No Category') {
+                    categories.add(p.category);
+                }
+            });
+            
+            const totalPrice = calculateTotalPrice();
+            return categories.size >= 2 && totalPrice >= 850000;
+        }
+
+        // =====================
+        // LOGIKA PAKET
+        // =====================
+        
+        // Total paket yang tersedia (setiap Rp 850.000 = 1 paket)
+        function totalPackage() {
+            return Math.floor(calculateTotalPrice() / 850000);
+        }
+
+        // Paket yang sudah digunakan oleh bonus
+        function usedPackage() {
+            let used = 0;
+            used += bonusQty['6865'] * 1;
+            used += Math.floor(bonusQty['E245'] / 2) * 1;
+            used += bonusQty['8085'] * 3;
+            used += bonusQty['7727'] * 4;
+            used += bonusQty['D526'] * 5;
+            return used;
+        }
+
+        // Cek apakah bisa menambah bonus
+        function canAddBonus(sku, delta) {
+            const next = bonusQty[sku] + delta;
+            if (next < 0) return false;
+            
+            let addPackages = 0;
+            
+            if (sku === 'E245') {
+                const currentPairs = Math.floor(bonusQty[sku] / 2);
+                const nextPairs = Math.floor(next / 2);
+                addPackages = nextPairs - currentPairs;
+            } else if (sku === '6865') {
+                addPackages = delta * 1;
+            } else if (sku === '8085') {
+                addPackages = delta * 3;
+            } else if (sku === '7727') {
+                addPackages = delta * 4;
+            } else if (sku === 'D526') {
+                addPackages = delta * 5;
+            }
+            
+            return usedPackage() + addPackages <= totalPackage();
+        }
+
+        // =====================
+        // FUNGSI DISKON & FINAL PRICE
+        // =====================
+        function calculateFinalPrice(sku) {
+            const product = productData[sku];
+            const qty = cart[sku];
+            
+            if (qty === 0) return 0;
+            
+            let discountPercentage = 0;
+            if (qty > 0) {
+                discountPercentage = 2;
+                
+                if (canUseBonus()) {
+                    discountPercentage = product.discount;
+                }
+            }
+            
+            const discountAmount = product.price * (discountPercentage / 100);
+            const priceAfterDiscount = product.price - discountAmount;
+            const tax = priceAfterDiscount * 0.11;
+            const finalPricePerUnit = priceAfterDiscount + tax;
+            
+            return qty * finalPricePerUnit;
+        }
+
+        // =====================
+        // SORTING PRODUK
+        // =====================
+        function getSortedProducts() {
+            const bonusRank = {
+                '6865': 1,
+                'E245': 1,
+                '8085': 2,
+                '7727': 3,
+                'D526': 4
+            };
+            
+            return [...products].sort((a, b) => {
+                const aBuy = cart[a.sku] > 0;
+                const bBuy = cart[b.sku] > 0;
+                const aBonus = bonusRank[a.sku] && canUseBonus();
+                const bBonus = bonusRank[b.sku] && canUseBonus();
+                
+                // 1. Produk dibeli naik
+                if (aBuy && !bBuy) return -1;
+                if (!aBuy && bBuy) return 1;
+                
+                // 2. Produk bonus eligible di bawah produk dibeli
+                if (aBonus && !bBonus) return -1;
+                if (!aBonus && bBonus) return 1;
+                
+                // 3. Urut bonus sesuai threshold
+                if (aBonus && bBonus) return bonusRank[a.sku] - bonusRank[b.sku];
+                
+                // 4. Category → Product
+                if (a.category !== b.category) {
+                    return a.category.localeCompare(b.category);
+                }
+                return a.product.localeCompare(b.product);
+            });
+        }
+
+        // =====================
+        // BONUS MAX PER PRODUK
+        // =====================
+        function getBonusMax(sku) {
+            if (!canUseBonus()) return 0;
+            const packages = totalPackage() - usedPackage();
+            if (packages <= 0) return 0;
+            if (sku === 'E245') {
+                return packages * 2;
+            }
+            const map = {
+                '6865': 1,
+                '8085': 3,
+                '7727': 4,
+                'D526': 5
+            };
+            return map[sku] ? Math.floor(packages / map[sku]) : 0;
+        }
+
+        // =====================
+        // FUNGSI VISIBILITY RESET
+        // =====================
+        function updateResetVisibility() {
+            const hasQty = Object.values(cart).some(v => v > 0);
+            const hasBonus = Object.values(bonusQty).some(v => v > 0);
+            document.getElementById('resetWrapper').style.display = (hasQty || hasBonus) ? 'block' : 'none';
+        }
+
+        // =====================
+        // RENDER FUNCTIONS
+        // =====================
+        function renderTable() {
+            // Reset bonus jika kondisi bonus tidak terpenuhi
+            if (!canUseBonus()) {
+                Object.keys(bonusQty).forEach(k => bonusQty[k] = 0);
+            }
+            
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            const canUseBonusFlag = canUseBonus();
+            
+            // Gunakan sorted products
+            getSortedProducts().forEach(product => {
+                const categoryClass = product.category.toLowerCase().replace(' ', '');
+                const isBonusProduct = ['6865', 'E245', '8085', '7727', 'D526'].includes(product.sku);
+                const isPurchased = cart[product.sku] > 0;
+                const isMc246 = product.sku === 'E245';
+                
+                const finalPrice = calculateFinalPrice(product.sku);
+                
+                const row = document.createElement('tr');
+                
+                if (isPurchased) {
+                    row.classList.add('purchased-product');
+                } else if (isBonusProduct && canUseBonusFlag) {
+                    row.classList.add('bonus-product-row');
+                }
+                
+                const currentBonusQty = bonusQty[product.sku] || 0;
+                const isBonusZero = currentBonusQty === 0;
+                const bonusMax = getBonusMax(product.sku);
+                const isRemainZero = bonusMax === 0;
+                
+                // Tentukan kelas visibility untuk bonus controls
+                const bonusVisibilityClass = isBonusProduct ? 
+                    (canUseBonusFlag ? 'bonus-visible' : 'bonus-hidden') : '';
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="product-header">
+                            <div class="sku">${product.sku}</div>
+                            <div class="product-name">${product.product}</div>
+                            <div>
+                                <span class="category-badge ${categoryClass}">
+                                    ${product.category}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="updateQty('${product.sku}', -1)" 
+                                ${product.category === 'No Category' ? 'disabled' : ''}>
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" min="0" class="qty-input ${cart[product.sku] === 0 ? 'qty-input-zero' : ''}" 
+                                value="${cart[product.sku]}" 
+                                onchange="updateQtyManual('${product.sku}', this.value)"
+                                ${product.category === 'No Category' ? 'disabled' : ''}
+                                onfocus="this.select()">
+                            <button class="qty-btn" onclick="updateQty('${product.sku}', 1)" 
+                                ${product.category === 'No Category' ? 'disabled' : ''}>
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        
+                        ${isBonusProduct ? `
+                            <div class="bonus-controls ${bonusVisibilityClass}">
+                                <div class="bonus-header">
+                                    <i class="fas fa-gift" style="color: #27ae60;"></i>
+                                    <span>Bonus</span>
+                                </div>
+                                <div class="bonus-buttons">
+                                    <button class="bonus-btn" 
+                                        ${!canUseBonus() || currentBonusQty <= 0 ? 'disabled' : ''} 
+                                        onclick="updateBonusQty('${product.sku}', ${isMc246 ? '-2' : '-1'})">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" class="qty-input ${isBonusZero ? 'bonus-input-zero' : ''}" 
+                                        style="width:50px" min="0" value="${currentBonusQty}" 
+                                        onchange="updateBonusQtyManual('${product.sku}', this.value)"
+                                        ${!canUseBonus() ? 'disabled' : ''}
+                                        onfocus="this.select()">
+                                    <button class="bonus-btn" 
+                                        ${!canUseBonus() || !canAddBonus(product.sku, isMc246 ? 2 : 1) ? 'disabled' : ''} 
+                                        onclick="updateBonusQty('${product.sku}', ${isMc246 ? '2' : '1'})">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="max-notification ${isRemainZero ? 'remain-zero' : ''}">
+                                    Remain: ${bonusMax}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <div class="price-info">
+                            <div class="price-value">Harga: ${formatRupiah(product.price)}</div>
+                            ${cart[product.sku] > 0 ? `
+                                <div class="discount-info">
+                                    Diskon: ${canUseBonusFlag ? product.discount : 2}%
+                                </div>
+                                <div class="final-price-value">
+                                    Final Price: ${formatRupiah(finalPrice)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            updateSummary();
+            updateConditions();
+            updateResetVisibility();
+        }
+
+        // Update quantity produk
+        function updateQty(sku, change) {
+            if (productData[sku].category === 'No Category') return;
+            
+            const newQty = Math.max(0, cart[sku] + change);
+            cart[sku] = newQty;
+            
+            renderTable();
+        }
+
+        // Update quantity manual
+        function updateQtyManual(sku, value) {
+            if (productData[sku].category === 'No Category') return;
+            
+            const newQty = Math.max(0, parseInt(value) || 0);
+            cart[sku] = newQty;
+            
+            renderTable();
+        }
+
+        // Update bonus quantity (dengan tombol)
+        function updateBonusQty(sku, change) {
+            if (!canUseBonus()) return;
+            
+            if (sku === 'E245') {
+                if (change % 2 !== 0) {
+                    change = change > 0 ? 2 : -2;
+                }
+                
+                if (canAddBonus(sku, change)) {
+                    bonusQty[sku] += change;
+                }
+            } else {
+                if (canAddBonus(sku, change)) {
+                    bonusQty[sku] += change;
+                }
+            }
+            
+            renderTable();
+        }
+
+        // Update bonus quantity manual (input langsung)
+        function updateBonusQtyManual(sku, value) {
+            if (!canUseBonus()) return;
+            
+            let newQty = Math.max(0, parseInt(value) || 0);
+            
+            // Batasi dengan remain
+            const maxQty = getBonusMax(sku);
+            if (newQty > maxQty) {
+                newQty = maxQty;
+            }
+            
+            // Khusus MC-246 → kelipatan 2
+            if (sku === 'E245') {
+                newQty = Math.floor(newQty / 2) * 2;
+            }
+            
+            bonusQty[sku] = newQty;
+            renderTable();
+        }
+
+        // Update summary dengan definisi baru Bonus Balance
+        function updateSummary() {
+            const totalPrice = calculateTotalPrice();
+            let totalFinalPrice = 0;
+            
+            products.forEach(product => {
+                totalFinalPrice += calculateFinalPrice(product.sku);
+            });
+            
+            const totalPackages = totalPackage();
+            const usedPackages = usedPackage();
+            const usedThresholdValue = usedPackages * 850000;
+            const bonusBalanceValue = Math.max(0, totalPrice - usedThresholdValue);
+            
+            document.getElementById('totalPackage').textContent = totalPackages;
+            document.getElementById('totalPrice').textContent = formatRupiah(totalPrice);
+            document.getElementById('totalFinalPrice').textContent = formatRupiah(totalFinalPrice);
+            document.getElementById('bonusBalance').textContent = formatRupiah(bonusBalanceValue);
+        }
+
+        // Update conditions
+        function updateConditions() {
+            const categories = new Set();
+            products.forEach(p => {
+                if (cart[p.sku] > 0 && p.category !== 'No Category') {
+                    categories.add(p.category);
+                }
+            });
+            
+            const totalPrice = calculateTotalPrice();
+            const packageBox = document.getElementById('packageIndicator');
+            const packageStatus = document.getElementById('packageStatus');
+            
+            if (categories.size >= 2 && totalPrice >= 850000) {
+                packageBox.classList.remove('summary-red');
+                packageBox.classList.add('summary-green');
+                packageStatus.innerHTML = '✅ 2 Kategori & ≥ 850rb';
+            } else {
+                packageBox.classList.remove('summary-green');
+                packageBox.classList.add('summary-red');
+                packageStatus.innerHTML = '❌ 2 Kategori & ≥ 850rb';
+            }
+        }
+
+        // Reset all function dengan konfirmasi
+        function resetAll() {
+            const confirmed = confirm(
+                'Apakah Anda yakin ingin mereset semua Qty Produk dan Qty Bonus?\n\n' +
+                'Tindakan ini tidak dapat dibatalkan.'
+            );
+            
+            if (!confirmed) return;
+            
+            Object.keys(cart).forEach(k => cart[k] = 0);
+            Object.keys(bonusQty).forEach(k => bonusQty[k] = 0);
+            renderTable();
+        }
+
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+        });
+    </script>
+</body>
+</html>
